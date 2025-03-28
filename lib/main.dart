@@ -1,109 +1,48 @@
 import 'package:flutter/material.dart';
-import 'package:camera/camera.dart';
+import 'package:provider/provider.dart';
 import 'package:dynamic_color/dynamic_color.dart';
-import 'old/model_screen.dart';
-import 'old/verification_screen.dart';
-import 'old/location_check_screen.dart';
-import 'old/login_screen.dart';
-import 'old/theme.dart';
+import 'screens/splash_screen.dart';
+import 'providers/auth_provider.dart';
 
-List<CameraDescription> cameras = [];
-
-Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  cameras = await availableCameras();
-  runApp(const MyApp());
+void main() {
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
+  // Default color scheme pake merah kalem
+  static final _defaultColor = ColorScheme.fromSeed(seedColor: Colors.red[300]!);
+
   @override
   Widget build(BuildContext context) {
     return DynamicColorBuilder(
-      builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
-        ThemeData theme = AppTheme.baseTheme;
-        if (darkDynamic != null) {
-          theme = theme.copyWith(
-            colorScheme: darkDynamic,
-          );
-          print("Debug: Using dynamic color - ${darkDynamic.primary}");
-        } else {
-          print("Debug: Using fallback static theme");
-        }
+      builder: (lightDynamic, darkDynamic) {
+        ColorScheme lightColorScheme = lightDynamic ?? _defaultColor;
+        ColorScheme darkColorScheme = darkDynamic ?? _defaultColor;
 
         return MaterialApp(
-          title: 'Face Recognition App',
-          theme: theme,
-          home: const HomeScreen(),
+          title: 'Mitra Aplikasi',
+          theme: ThemeData(
+            colorScheme: lightColorScheme,
+            useMaterial3: true,
+            visualDensity: VisualDensity.adaptivePlatformDensity,
+          ),
+          darkTheme: ThemeData(
+            colorScheme: darkColorScheme,
+            useMaterial3: true,
+          ),
+          themeMode: ThemeMode.system,
+          home: const SplashScreen(),
         );
       },
-    );
-  }
-}
-
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    print("Debug: HomeScreen Primary Color - ${Theme.of(context).primaryColor}");
-    return Scaffold(
-      appBar: AppBar(title: const Text("Face Recognition")),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ModelScreen(cameras: cameras),
-                  ),
-                );
-              },
-              child: const Text("Lihat Model"),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => FaceVerificationScreen(cameras: cameras),
-                  ),
-                );
-              },
-              child: const Text("Ke Halaman Verifikasi"),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const LocationCheckScreen(),
-                  ),
-                );
-              },
-              child: const Text("Cek Lokasi"),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const LoginScreen(),
-                  ),
-                );
-              },
-              child: const Text("Login"),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
